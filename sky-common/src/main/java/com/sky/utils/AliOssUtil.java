@@ -19,6 +19,7 @@ public class AliOssUtil {
     private String accessKeyId;
     private String accessKeySecret;
     private String bucketName;
+    // TODO 改为不暴露密钥的方式
 
     /**
      * 文件上传

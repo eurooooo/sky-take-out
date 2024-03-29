@@ -12,7 +12,6 @@ public class OssConfiguration {
 
     @Bean
     public AliOssUtil aliOssUtil(AliOssProperties aliOssProperties) {
-        log.info("阿里云云间！！！！！！！！！！！: {}", aliOssProperties);
         return new AliOssUtil(aliOssProperties.getEndpoint(), aliOssProperties.getAccessKeyId(), aliOssProperties.getAccessKeySecret(), aliOssProperties.getBucketName());
     }
 }
