@@ -109,18 +109,21 @@ public class SetmealServiceImpl implements SetmealService {
     }
 
     @Override
-    public void setStatus(Long status, Long id) {
+    public void setStatus(Integer status, Long id) {
         // 如果含有禁售菜品，则无法起售
-        if (status == 1) {
+        if (status == StatusConstant.ENABLE) {
             List<SetmealDish> setmealDishes = setmealDishMapper.getBySetmealId(id);
-            setmealDishes.forEach(setmealDish -> {
-                Dish dish = dishMapper.getById(setmealDish.getDishId());
+            if (setmealDishes != null && !setmealDishes.isEmpty()) {
+                setmealDishes.forEach(setmealDish -> {
+                    Dish dish = dishMapper.getById(setmealDish.getDishId());
                 if (dish.getStatus() == 0) {
                     throw new SetmealEnableFailedException(MessageConstant.SETMEAL_ENABLE_FAILED);
                 }
-            });
+                });
+            }
         }
 
-        setmealMapper.setStatus(status, id);
+        Setmeal setmeal = Setmeal.builder().id(id).status(status).build();
+        setmealMapper.update(setmeal);
     }
 }

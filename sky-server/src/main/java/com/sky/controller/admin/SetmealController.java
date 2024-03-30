@@ -59,7 +59,7 @@ public class SetmealController {
 
     @PostMapping("/status/{status}")
     @ApiOperation("套餐起售禁售")
-    public Result setStatus(@PathVariable Long status, Long id) {
+    public Result setStatus(@PathVariable Integer status, Long id) {
         setmealService.setStatus(status, id);
 
         return Result.success();
