@@ -6,9 +6,12 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.exception.SetmealEnableFailedException;
+import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
@@ -31,6 +34,8 @@ public class SetmealServiceImpl implements SetmealService {
     SetmealMapper setmealMapper;
     @Autowired
     SetmealDishMapper setmealDishMapper;
+    @Autowired
+    DishMapper dishMapper;
 
     @Override
     public void saveWithDish(SetmealDTO setmealDTO) {
@@ -86,17 +91,36 @@ public class SetmealServiceImpl implements SetmealService {
 
     @Override
     public void updateWithDish(SetmealDTO setmealDTO) {
-        Setmeal setmeal = new Setmeal();
-        BeanUtils.copyProperties(setmealDTO, setmeal);
-
-        setmealMapper.update(setmeal);
-
-        setmealDishMapper.deleteById(setmealDTO.getId());
-
+        // TODO 如果新加入套餐的菜品是停售状态，而套餐设置为起售状态，则出现bug
+        // 更新套餐与菜品关系表
         List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes();
         setmealDishes.forEach(setmealDish -> {
             setmealDish.setSetmealId(setmealDTO.getId());
         });
+
+        setmealDishMapper.deleteById(setmealDTO.getId());
         setmealDishMapper.insertBatch(setmealDishes);
+
+        // 更新套餐表
+        Setmeal setmeal = new Setmeal();
+        BeanUtils.copyProperties(setmealDTO, setmeal);
+
+        setmealMapper.update(setmeal);
+    }
+
+    @Override
+    public void setStatus(Long status, Long id) {
+        // 如果含有禁售菜品，则无法起售
+        if (status == 1) {
+            List<SetmealDish> setmealDishes = setmealDishMapper.getBySetmealId(id);
+            setmealDishes.forEach(setmealDish -> {
+                Dish dish = dishMapper.getById(setmealDish.getDishId());
+                if (dish.getStatus() == 0) {
+                    throw new SetmealEnableFailedException(MessageConstant.SETMEAL_ENABLE_FAILED);
+                }
+            });
+        }
+
+        setmealMapper.setStatus(status, id);
     }
 }
