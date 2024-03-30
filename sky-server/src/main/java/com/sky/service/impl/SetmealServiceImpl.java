@@ -91,7 +91,6 @@ public class SetmealServiceImpl implements SetmealService {
 
     @Override
     public void updateWithDish(SetmealDTO setmealDTO) {
-        // TODO 如果新加入套餐的菜品是停售状态，而套餐设置为起售状态，则出现bug
         // 更新套餐与菜品关系表
         List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes();
         setmealDishes.forEach(setmealDish -> {
