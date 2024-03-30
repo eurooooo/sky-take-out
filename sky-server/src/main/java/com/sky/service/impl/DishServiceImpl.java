@@ -74,10 +74,8 @@ public class DishServiceImpl implements DishService {
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
         }
 
-
         dishMapper.deleteByIds(ids);
         dishFlavorMapper.deleteByDishIds(ids);
-
     }
 
     @Override
