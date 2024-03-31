@@ -11,3 +11,8 @@ sky:
     access-key-id: LTAI5tPaiZk7ov8QoFP5Uthp
     access-key-secret: FuBekIMK2W72QVnKGNwQmc3MNjZNOx
     bucket-name: zephyrbuck1
+  redis:
+    host: localhost
+    port: 6379
+    password: abc123
+    database: 10
