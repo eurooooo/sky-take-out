@@ -153,28 +153,29 @@ public class DishServiceImpl implements DishService {
 
     @Override
     public void setStatus(Integer status, Long dishId) {
-        List<Long> dishIds = new ArrayList<>();
-        dishIds.add(dishId);
-
-        // 如果菜品在套餐中起售，则不能停售
-        if (status == StatusConstant.DISABLE) {
-            // Get setmeals containing this dish
-            List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(dishIds);
-            if (setmealIds != null && !setmealIds.isEmpty()) {
-                setmealIds.forEach(setmealId -> {
-                    Setmeal setmeal = setmealMapper.getById(setmealId);
-                    if (Objects.equals(setmeal.getStatus(), StatusConstant.ENABLE)) {
-                        throw new BaseException(MessageConstant.DISH_DISABLE_FAILED);
-                    }
-                });
-            }
-        }
-
         // Set the status of the dish with dishId
         Dish dish = Dish.builder()
                 .id(dishId)
                 .status(status)
                 .build();
+
+
+        // 如果菜品在套餐中起售，则相应套餐也要停售
+        if (status == StatusConstant.DISABLE) {
+            List<Long> dishIds = new ArrayList<>();
+            dishIds.add(dishId);
+            // Get setmeals containing this dish
+            List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(dishIds);
+            if (setmealIds != null && !setmealIds.isEmpty()) {
+                setmealIds.forEach(setmealId -> {
+                    Setmeal setmeal = Setmeal.builder()
+                            .id(setmealId)
+                            .status(status)
+                            .build();
+                    setmealMapper.update(setmeal);
+                });
+            }
+        }
 
         dishMapper.update(dish);
     }
