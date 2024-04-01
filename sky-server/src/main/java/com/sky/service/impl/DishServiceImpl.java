@@ -8,10 +8,13 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.Setmeal;
+import com.sky.exception.BaseException;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -33,6 +37,8 @@ public class DishServiceImpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private SetmealMapper setmealMapper;
     @Override
     @Transactional
     public void saveWithFlavor(DishDTO dishDTO) {
@@ -143,5 +149,33 @@ public class DishServiceImpl implements DishService {
         }
 
         return dishVOList;
+    }
+
+    @Override
+    public void setStatus(Integer status, Long dishId) {
+        List<Long> dishIds = new ArrayList<>();
+        dishIds.add(dishId);
+
+        // 如果菜品在套餐中起售，则不能停售
+        if (status == StatusConstant.DISABLE) {
+            // Get setmeals containing this dish
+            List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(dishIds);
+            if (setmealIds != null && !setmealIds.isEmpty()) {
+                setmealIds.forEach(setmealId -> {
+                    Setmeal setmeal = setmealMapper.getById(setmealId);
+                    if (Objects.equals(setmeal.getStatus(), StatusConstant.ENABLE)) {
+                        throw new BaseException(MessageConstant.DISH_DISABLE_FAILED);
+                    }
+                });
+            }
+        }
+
+        // Set the status of the dish with dishId
+        Dish dish = Dish.builder()
+                .id(dishId)
+                .status(status)
+                .build();
+
+        dishMapper.update(dish);
     }
 }
