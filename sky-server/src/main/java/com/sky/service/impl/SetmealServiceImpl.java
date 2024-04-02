@@ -133,8 +133,8 @@ public class SetmealServiceImpl implements SetmealService {
      * @return
      */
     public List<Setmeal> list(Setmeal setmeal) {
-        List<Setmeal> list = setmealMapper.list(setmeal);
-        return list;
+        List<Setmeal> setmeals = setmealMapper.list(setmeal);
+        return setmeals;
     }
 
     /**

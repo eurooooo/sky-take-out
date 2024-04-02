@@ -95,6 +95,7 @@ public class DishController {
      * @param pattern
      */
     private void cleanCache(String pattern){
+        // TODO AOP实现？
         Set keys = redisTemplate.keys(pattern);
         redisTemplate.delete(keys);
     }
